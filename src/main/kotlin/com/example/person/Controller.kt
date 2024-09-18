@@ -76,5 +76,9 @@ fun Application.personRoutes() {
                 }
             )
         }
+
+        get("/contagem-pessoas") {
+            call.respond(HttpStatusCode.OK, repository.count())
+        }
     }
 }

@@ -85,5 +85,9 @@ class Repository(database: Database) {
             ) }
     }
 
+    suspend fun count(): Long = dbQuery {
+        People.selectAll().count()
+    }
+
     private suspend fun <T> dbQuery(block: suspend () -> T): T = newSuspendedTransaction(Dispatchers.IO) { block() }
 }
