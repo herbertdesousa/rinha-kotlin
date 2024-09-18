@@ -5,6 +5,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException
 import org.jetbrains.exposed.sql.Database
 import java.time.LocalDate
 
@@ -21,6 +22,10 @@ fun Application.personRoutes() {
 
         post("/pessoas") {
             val person = call.receive<PersonDTO>()
+
+            if (repository.findOneByNickname(person.nickname) != null) {
+                call.respond(HttpStatusCode.BadRequest, "Nickname in use")
+            }
 
             val id = repository.create(
                 PersonEntity(

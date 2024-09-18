@@ -59,6 +59,19 @@ class Repository(database: Database) {
         }
     }
 
+    suspend fun findOneByNickname(nickname: String): PersonEntity? {
+        return dbQuery {
+            People.select { People.nickname eq nickname }
+                .map { PersonEntity(
+                    it[People.name],
+                    it[People.nickname],
+                    it[People.birthdate],
+                    deserializeStacks(it[People.stacks])
+                ) }
+                .singleOrNull()
+        }
+    }
+
     suspend fun queryByTerm(term: String) = dbQuery {
         People.select {
             (People.name like "%$term%") or (People.nickname like "%$term%") or (People.stacks like "%$term%")
