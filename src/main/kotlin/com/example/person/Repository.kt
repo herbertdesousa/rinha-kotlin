@@ -59,5 +59,18 @@ class Repository(database: Database) {
         }
     }
 
+    suspend fun queryByTerm(term: String) = dbQuery {
+        People.select {
+            (People.name like "%$term%") or (People.nickname like "%$term%") or (People.stacks like "%$term%")
+        }
+            .limit(50)
+            .map { PersonEntity(
+                it[People.name],
+                it[People.nickname],
+                it[People.birthdate],
+                deserializeStacks(it[People.stacks])
+            ) }
+    }
+
     private suspend fun <T> dbQuery(block: suspend () -> T): T = newSuspendedTransaction(Dispatchers.IO) { block() }
 }

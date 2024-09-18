@@ -54,5 +54,23 @@ fun Application.personRoutes() {
                 call.respond(HttpStatusCode.NotFound)
             }
         }
+
+        get("/pessoas") {
+            val term = call.queryParameters["t"] ?: call.respond(HttpStatusCode.UnprocessableEntity, "Term required")
+
+            val people = repository.queryByTerm(term.toString())
+
+            call.respond(
+                HttpStatusCode.OK,
+                people.map {
+                    PersonDTO(
+                        it.name,
+                        it.nickname,
+                        it.birthdate.toString(),
+                        it.stacks,
+                    )
+                }
+            )
+        }
     }
 }
