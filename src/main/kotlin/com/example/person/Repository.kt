@@ -46,7 +46,7 @@ class Repository(database: Database) {
         }[People.id]
     }
 
-    suspend fun findById(id: Int): PersonEntity? {
+    suspend fun findOneById(id: Int): PersonEntity? {
         return dbQuery {
             People.select { People.id eq id }
                 .map { PersonEntity(
