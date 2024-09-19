@@ -35,6 +35,7 @@ fun Application.personRoutes() {
                 )
             )
 
+            call.response.headers.append("Location", "pessoas/${id}")
             call.respond(HttpStatusCode.Created, id)
         }
 
@@ -60,7 +61,7 @@ fun Application.personRoutes() {
         }
 
         get("/pessoas") {
-            val term = call.queryParameters["t"] ?: call.respond(HttpStatusCode.UnprocessableEntity, "Term required")
+            val term = call.queryParameters["t"] ?: call.respond(HttpStatusCode.BadRequest, "Term required")
 
             val people = repository.queryByTerm(term.toString())
 
