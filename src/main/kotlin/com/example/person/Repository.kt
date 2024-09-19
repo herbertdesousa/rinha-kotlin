@@ -1,10 +1,12 @@
 package com.example.person
 
+import com.example.common.Database
 import kotlinx.coroutines.Dispatchers
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.javatime.date
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.or
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 
 data class PersonEntity(
@@ -15,22 +17,6 @@ data class PersonEntity(
 )
 
 class Repository(database: Database) {
-    object People : Table("people") {
-        val id = integer("id").autoIncrement()
-        val name = varchar("name", length = 256)
-        val nickname = varchar("nickname", length = 256).uniqueIndex()
-        val birthdate = date("birthdate")
-        val stacks = varchar("stack", length = 512)
-
-        override val primaryKey = PrimaryKey(id)
-    }
-
-    init {
-        transaction(database) {
-            SchemaUtils.create(People)
-        }
-    }
-
     private val separator = "|:|"
 
     private fun serializeStacks(stacks: List<String>): String = stacks.joinToString(separator)
@@ -38,22 +24,22 @@ class Repository(database: Database) {
     private fun deserializeStacks(stacks: String): List<String> = stacks.split(separator)
 
     suspend fun create(payload: PersonEntity): Int = dbQuery {
-        People.insert {
+        Database.People.insert {
             it[name] = payload.name
             it[nickname] = payload.nickname
             it[birthdate] = payload.birthdate
             it[stacks] = serializeStacks(payload.stacks)
-        }[People.id]
+        }[Database.People.id]
     }
 
     suspend fun findOneById(id: Int): PersonEntity? {
         return dbQuery {
-            People.select { People.id eq id }
+            Database.People.select { Database.People.id eq id }
                 .map { PersonEntity(
-                    it[People.name],
-                    it[People.nickname],
-                    it[People.birthdate],
-                    deserializeStacks(it[People.stacks])
+                    it[Database.People.name],
+                    it[Database.People.nickname],
+                    it[Database.People.birthdate],
+                    deserializeStacks(it[Database.People.stacks])
                 ) }
                 .singleOrNull()
         }
@@ -61,32 +47,32 @@ class Repository(database: Database) {
 
     suspend fun findOneByNickname(nickname: String): PersonEntity? {
         return dbQuery {
-            People.select { People.nickname eq nickname }
+            Database.People.select { Database.People.nickname eq nickname }
                 .map { PersonEntity(
-                    it[People.name],
-                    it[People.nickname],
-                    it[People.birthdate],
-                    deserializeStacks(it[People.stacks])
+                    it[Database.People.name],
+                    it[Database.People.nickname],
+                    it[Database.People.birthdate],
+                    deserializeStacks(it[Database.People.stacks])
                 ) }
                 .singleOrNull()
         }
     }
 
     suspend fun queryByTerm(term: String) = dbQuery {
-        People.select {
-            (People.name like "%$term%") or (People.nickname like "%$term%") or (People.stacks like "%$term%")
+        Database.People.select {
+            (Database.People.name like "%$term%") or (Database.People.nickname like "%$term%") or (Database.People.stacks like "%$term%")
         }
             .limit(50)
             .map { PersonEntity(
-                it[People.name],
-                it[People.nickname],
-                it[People.birthdate],
-                deserializeStacks(it[People.stacks])
+                it[Database.People.name],
+                it[Database.People.nickname],
+                it[Database.People.birthdate],
+                deserializeStacks(it[Database.People.stacks])
             ) }
     }
 
     suspend fun count(): Long = dbQuery {
-        People.selectAll().count()
+        Database.People.selectAll().count()
     }
 
     private suspend fun <T> dbQuery(block: suspend () -> T): T = newSuspendedTransaction(Dispatchers.IO) { block() }
