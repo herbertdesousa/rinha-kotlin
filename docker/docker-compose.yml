@@ -1,0 +1,14 @@
+version: '3.5'
+services:
+  api1:
+    image: rinha-back-kotlin
+    hostname: api1
+    #depends_on:
+    #  - db
+    ports:
+      - "9393:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '0.5GB'
