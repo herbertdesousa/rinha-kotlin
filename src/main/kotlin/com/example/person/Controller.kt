@@ -1,6 +1,5 @@
 package com.example.person
 
-import com.example.common.Database
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -10,7 +9,7 @@ import java.time.LocalDate
 
 fun Application.personRoutes() {
     routing {
-        val repository = Repository(Database())
+        val repository = Repository()
 
         post("/pessoas") {
             val person = call.receive<PersonDTO>()
