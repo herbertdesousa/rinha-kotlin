@@ -1,21 +1,37 @@
 version: '3.5'
 services:
+  nginx:
+    image: nginx:latest
+    depends_on:
+      - api1
+      - api2
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "9999:9999"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: '256MB'
+    networks:
+      - rinha-network
+
   api1:
     image: sousaherbert138/rinha-kotlin:latest
     hostname: api1
     depends_on:
       - db
     environment:
-      DB_POOL_SIZE: 3
+      PORT: 8080
+      DB_POOL_SIZE: 4
       DB_ADDRESS: db
       DB_PORT: 5432
-      CACHE_PEOPLE_MAX_SIZE: 2
-      DB_COROUTINES_PER_POOL: 4
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       DB_DATABASE: postgres
-    ports:
-      - "9999:8080"
+      CACHE_PEOPLE_MAX_SIZE: 5000
+      DB_COROUTINES_PER_POOL: 4
     deploy:
       resources:
         limits:
@@ -23,6 +39,30 @@ services:
           memory: '1GB'
     networks:
       - rinha-network
+
+  api2:
+    image: sousaherbert138/rinha-kotlin:latest
+    hostname: api2
+    depends_on:
+      - db
+    environment:
+      PORT: 8081
+      DB_POOL_SIZE: 4
+      DB_ADDRESS: db
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_DATABASE: postgres
+      CACHE_PEOPLE_MAX_SIZE: 5000
+      DB_COROUTINES_PER_POOL: 4
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: '1GB'
+    networks:
+      - rinha-network
+
   db:
     image: postgres
     hostname: db
@@ -35,8 +75,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
-          memory: '2GB'
+          cpus: '0.4'
+          memory: '744MB'
     networks:
       - rinha-network
 
