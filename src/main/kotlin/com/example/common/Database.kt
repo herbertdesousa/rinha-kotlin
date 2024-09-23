@@ -9,7 +9,6 @@ import org.jetbrains.exposed.sql.DatabaseConfig
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.Transaction
-import net.perfectdreams.exposedpowerutils
 
 object Database {
     lateinit var database: Database
