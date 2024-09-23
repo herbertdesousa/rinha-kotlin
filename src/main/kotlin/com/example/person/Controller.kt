@@ -14,15 +14,15 @@ fun Application.personRoutes() {
         post("/pessoas") {
             val person = call.receive<PersonDTO>()
 
-            if (repository.findOneByNickname(person.nickname) != null) {
+            if (repository.findOneByNickname(person.apelido) != null) {
                 call.respond(HttpStatusCode.BadRequest, "Nickname in use")
             }
 
             val id = repository.create(
                 PersonEntity(
-                    person.name,
-                    person.nickname,
-                    LocalDate.parse(person.birthdate),
+                    person.nome,
+                    person.apelido,
+                    LocalDate.parse(person.nascimento),
                     person.stack,
                 )
             )

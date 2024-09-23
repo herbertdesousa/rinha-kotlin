@@ -7,15 +7,15 @@ import java.time.format.DateTimeParseException
 
 @Serializable
 data class PersonDTO(
-    val name: String,
-    val nickname: String,
-    val birthdate: String,
+    val nome: String,
+    val apelido: String,
+    val nascimento: String,
     var stack: List<String> = emptyList()
 )  {
     init {
-        validateName(name)
-        validateNickname(nickname)
-        validateBirthdate(birthdate)
+        validateName(nome)
+        validateNickname(apelido)
+        validateBirthdate(nascimento)
         validateStack(stack)
     }
 
