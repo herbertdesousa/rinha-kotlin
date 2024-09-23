@@ -41,6 +41,7 @@ object Database {
             transactionIsolation = IsolationLevel.TRANSACTION_REPEATABLE_READ.name
             addDataSourceProperty("reWriteBatchedInserts", "true")
             isAutoCommit = false
+            leakDetectionThreshold = 30L * 1000
         }
 
         dispatcher = Executors.newCachedThreadPool().asCoroutineDispatcher()
