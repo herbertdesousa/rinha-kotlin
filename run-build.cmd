@@ -6,6 +6,6 @@ copy /Y .\build\libs\app.jar .\docker\app.jar
 
 cd docker
 
-docker build -t rinha-back-kotlin .
+docker build -t sousaherbert138/rinha-kotlin:latest .
 
-docker-compose up -d
+docker push sousaherbert138/rinha-kotlin:latest

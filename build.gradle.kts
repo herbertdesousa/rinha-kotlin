@@ -25,6 +25,7 @@ tasks.test {
 
 repositories {
     mavenCentral()
+    maven("https://repo.perfectdreams.net/")
 }
 
 ktor {
@@ -44,6 +45,9 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed_version")
     implementation("com.h2database:h2:$h2_version")
+
+    api("net.perfectdreams.exposedpowerutils:exposed-power-utils:1.2.1")
+    api("net.perfectdreams.exposedpowerutils:postgres-power-utils:1.2.1")
 
     implementation("io.ktor:ktor-server-netty-jvm")
     implementation("ch.qos.logback:logback-classic:$logback_version")
