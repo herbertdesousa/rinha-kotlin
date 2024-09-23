@@ -14,11 +14,7 @@ fun Application.personRoutes() {
         post("/pessoas") {
             val person = call.receive<PersonDTO>()
 
-            if (repository.findOneByNickname(person.apelido) != null) {
-                call.respond(HttpStatusCode.BadRequest, "Nickname in use")
-            }
-
-            val id = repository.create(
+            val result = repository.create(
                 PersonEntity(
                     person.nome,
                     person.apelido,
@@ -27,8 +23,15 @@ fun Application.personRoutes() {
                 )
             )
 
-            call.response.headers.append("Location", "pessoas/${id}")
-            call.respond(HttpStatusCode.Created, id)
+            when (result) {
+                is CreatePersonResult.Success -> {
+                    call.response.headers.append("Location", "pessoas/${result.id}")
+                    call.respond(HttpStatusCode.Created, result.id)
+                }
+                CreatePersonResult.NicknameAlreadyInUse -> {
+                    call.respond(HttpStatusCode.BadRequest, "Nickname in use")
+                }
+            }
         }
 
         get("/pessoas/{id}") {

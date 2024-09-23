@@ -3,10 +3,12 @@ package com.example.person
 import com.example.common.Cache
 import com.example.common.Database
 import com.example.common.tables.People
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
+import org.postgresql.util.PSQLException
 import java.time.LocalDate
 
 data class PersonEntity(
@@ -15,6 +17,11 @@ data class PersonEntity(
     val birthdate: LocalDate,
     val stacks: List<String>
 )
+
+sealed class CreatePersonResult {
+    class Success(val id: Int) : CreatePersonResult()
+    data object NicknameAlreadyInUse : CreatePersonResult()
+}
 
 class Repository() {
     private val separator = "|:|"
@@ -27,20 +34,30 @@ class Repository() {
 
     private fun deserializeStacks(stacks: String): List<String> = stacks.split(separator)
 
-    fun create(payload: PersonEntity): Int = Database.transaction {
-        val peopleId = People.insert {
-            it[name] = payload.name
-            it[nickname] = payload.nickname
-            it[birthdate] = payload.birthdate
-            it[stacks] = serializeStacks(payload.stacks)
-        }[People.id]
+    suspend fun create(payload: PersonEntity): CreatePersonResult = Database.transaction {
+        try {
+            val peopleId = People.insert {
+                it[name] = payload.name
+                it[nickname] = payload.nickname
+                it[birthdate] = payload.birthdate
+                it[stacks] = serializeStacks(payload.stacks)
+            }[People.id]
 
-        cache.store(peopleId.toString(), payload)
+            cache.store(peopleId.toString(), payload)
 
-        return@transaction peopleId
+            return@transaction CreatePersonResult.Success(peopleId)
+        } catch(e: ExposedSQLException) {
+            val cause = e.cause
+            if (cause is PSQLException) {
+                if (cause.serverErrorMessage?.message?.contains("duplicate key value violates unique constraint") == true)
+                return@transaction CreatePersonResult.NicknameAlreadyInUse
+            }
+
+            throw e
+        }
     }
 
-    fun findOneById(id: Int): PersonEntity? {
+    suspend fun findOneById(id: Int): PersonEntity? {
         val foundCached = cache.getByKey(id.toString())
 
         if (foundCached != null) return foundCached
@@ -57,20 +74,7 @@ class Repository() {
         }
     }
 
-    fun findOneByNickname(nickname: String): PersonEntity? {
-        return Database.transaction {
-            People.select { People.nickname eq nickname }
-                .map { PersonEntity(
-                    it[People.name],
-                    it[People.nickname],
-                    it[People.birthdate],
-                    deserializeStacks(it[People.stacks])
-                ) }
-                .singleOrNull()
-        }
-    }
-
-    fun queryByTerm(term: String) = Database.transaction {
+    suspend fun queryByTerm(term: String) = Database.transaction {
         People.select {
             (People.name like "%$term%") or (People.nickname like "%$term%") or (People.stacks like "%$term%")
         }
@@ -83,7 +87,7 @@ class Repository() {
             ) }
     }
 
-    fun count(): Long = Database.transaction {
+    suspend fun count(): Long = Database.transaction {
         People.selectAll().count()
     }
 }
