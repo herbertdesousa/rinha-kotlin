@@ -40,6 +40,7 @@ object Database {
             maximumPoolSize = poolSize
             transactionIsolation = IsolationLevel.TRANSACTION_REPEATABLE_READ.name
             addDataSourceProperty("reWriteBatchedInserts", "true")
+            isAutoCommit = false
         }
 
         dispatcher = Executors.newCachedThreadPool().asCoroutineDispatcher()
