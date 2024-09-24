@@ -46,6 +46,11 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed_version")
     implementation("com.h2database:h2:$h2_version")
 
+    implementation("io.lettuce:lettuce-core:6.4.0.RELEASE")
+
+    runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+    runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.8.0-RC3-Beta")
+
     api("net.perfectdreams.exposedpowerutils:exposed-power-utils:1.2.1")
     api("net.perfectdreams.exposedpowerutils:postgres-power-utils:1.2.1")
 
