@@ -1,5 +1,8 @@
 package com.example.person
 
+import com.example.common.cache.NicknameCache
+import com.example.common.cache.PersonCache
+import com.example.common.cache.PersonCacheEntity
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -14,6 +17,10 @@ fun Application.personRoutes() {
         post("/pessoas") {
             val person = call.receive<PersonDTO>()
 
+            if (NicknameCache.exists(person.apelido)) {
+                call.respond(HttpStatusCode.BadRequest, "Nickname in use")
+            }
+
             val result = repository.create(
                 PersonEntity(
                     person.nome,
@@ -25,11 +32,25 @@ fun Application.personRoutes() {
 
             when (result) {
                 is CreatePersonResult.Success -> {
+                    NicknameCache.store(person.apelido)
+                    PersonCache.store(
+                        result.id.toString(),
+                        PersonCacheEntity(
+                            person.nome,
+                            person.apelido,
+                            LocalDate.parse(person.nascimento),
+                            person.stack,
+                        )
+                    )
+
                     call.response.headers.append("Location", "pessoas/${result.id}")
                     call.respond(HttpStatusCode.Created, result.id)
                 }
+
                 CreatePersonResult.NicknameAlreadyInUse -> {
                     call.respond(HttpStatusCode.BadRequest, "Nickname in use")
+
+                    NicknameCache.store(person.apelido)
                 }
             }
         }
@@ -37,10 +58,23 @@ fun Application.personRoutes() {
         get("/pessoas/{id}") {
             val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
 
+            val userCached = PersonCache.get(id.toString())
+
+            if (userCached !== null) {
+                call.respond(
+                    HttpStatusCode.OK,
+                    PersonDTO(
+                        userCached.name,
+                        userCached.nickname,
+                        userCached.birthdate.toString(),
+                        userCached.stacks,
+                    )
+                )
+            }
+
             val person = repository.findOneById(id)
 
             if (person != null) {
-                println(person)
                 call.respond(
                     HttpStatusCode.OK,
                     PersonDTO(

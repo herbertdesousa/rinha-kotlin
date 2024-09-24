@@ -1,6 +1,7 @@
 package com.example
 
 import com.example.common.Database
+import com.example.common.cache.Cache
 import com.example.plugins.configureRouting
 import com.example.plugins.configureSerialization
 import io.ktor.server.application.*
@@ -16,6 +17,10 @@ fun main() {
             System.getenv("DB_DATABASE") ?: "postgres",
             System.getenv("DB_USERNAME") ?: "postgres",
             System.getenv("DB_PASSWORD") ?: "postgres",
+        )
+
+        Cache.init(
+            System.getenv("CACHE_URL") ?: "redis://localhost:6379",
         )
     }
 

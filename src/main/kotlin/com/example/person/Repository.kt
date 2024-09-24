@@ -1,6 +1,5 @@
 package com.example.person
 
-import com.example.common.Cache
 import com.example.common.Database
 import com.example.common.tables.People
 import org.jetbrains.exposed.exceptions.ExposedSQLException
@@ -26,10 +25,6 @@ sealed class CreatePersonResult {
 class Repository() {
     private val separator = "|:|"
 
-    val cache = Cache<PersonEntity>(
-        System.getenv("CACHE_PEOPLE_MAX_SIZE")?.toInt() ?: 100
-    )
-
     private fun serializeStacks(stacks: List<String>): String = stacks.joinToString(separator)
 
     private fun deserializeStacks(stacks: String): List<String> = stacks.split(separator)
@@ -42,8 +37,6 @@ class Repository() {
                 it[birthdate] = payload.birthdate
                 it[stacks] = serializeStacks(payload.stacks)
             }[People.id]
-
-            cache.store(peopleId.toString(), payload)
 
             return@transaction CreatePersonResult.Success(peopleId)
         } catch(e: ExposedSQLException) {
@@ -58,10 +51,6 @@ class Repository() {
     }
 
     suspend fun findOneById(id: Int): PersonEntity? {
-        val foundCached = cache.getByKey(id.toString())
-
-        if (foundCached != null) return foundCached
-
         return Database.transaction {
             People.select { People.id eq id }
                 .map { PersonEntity(
