@@ -13,7 +13,7 @@ services:
       resources:
         limits:
           cpus: '0.1'
-          memory: '256MB'
+          memory: '96MB'
     networks:
       - rinha-network
 
@@ -22,6 +22,7 @@ services:
     hostname: api1
     depends_on:
       - db
+      - redis
     environment:
       PORT: 8080
       DB_POOL_SIZE: 4
@@ -30,13 +31,13 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       DB_DATABASE: postgres
-      CACHE_PEOPLE_MAX_SIZE: 5000
       DB_COROUTINES_PER_POOL: 4
+      CACHE_URL: redis://redis:6379
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: '1GB'
+          cpus: '0.45'
+          memory: '384MB'
     networks:
       - rinha-network
 
@@ -45,6 +46,7 @@ services:
     hostname: api2
     depends_on:
       - db
+      - redis
     environment:
       PORT: 8081
       DB_POOL_SIZE: 4
@@ -53,13 +55,26 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       DB_DATABASE: postgres
-      CACHE_PEOPLE_MAX_SIZE: 5000
       DB_COROUTINES_PER_POOL: 4
+      CACHE_URL: redis://redis:6379
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: '1GB'
+          cpus: '0.45'
+          memory: '384MB'
+    networks:
+      - rinha-network
+
+  redis:
+    image: redis
+    hostname: redis
+    ports:
+      - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: '1880MB'
     networks:
       - rinha-network
 
@@ -76,7 +91,7 @@ services:
       resources:
         limits:
           cpus: '0.4'
-          memory: '744MB'
+          memory: '256MB'
     networks:
       - rinha-network
 
